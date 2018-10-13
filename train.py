@@ -1,6 +1,6 @@
 
 import os
-from datagen import parse_input_data, DataGenerator
+from datagen import DataGenerator
 
 from utils import setup_logging
 
@@ -10,15 +10,6 @@ from keras import backend as K
 from keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard
 from keras.optimizers import Adam
 
-
-PATH = 'data/farmer_market'
-
-t_config = {'batch_size':16, 'num_per_class':120, 'num_classes':12}
-v_config = {'batch_size':16, 'num_per_class':30, 'num_classes':12}
-
-NUM_CLASSES = 12
-LR = 0.0002
-EPOCHS = 100
 
 
 class TrainValTensorBoard(TensorBoard):
@@ -56,11 +47,26 @@ class TrainValTensorBoard(TensorBoard):
 
 
 
-def training(model, confs):
+def format_training_confs(config):
 
+    t_config = {
+                'batch_size':config['train']['batch_size'],
+                'num_per_class':config['train']['num_per_class'][0],
+                'num_classes':config['train']['num_classes']
+    }
+
+
+    v_config = {
+                'batch_size':config['train']['batch_size'],
+                'num_per_class':config['train']['num_per_class'][1],
+                'num_classes':config['train']['num_classes']
+    }
+
+    return (t_config, v_config)
+
+
+def setup_gens(data, confs):
     t_config, v_config = confs
-
-    data, index_to_class = parse_input_data(PATH)
 
     train_data = [d for d in data if d['train']==True]
     val_data = [d for d in data if d['train']==False]
@@ -68,9 +74,16 @@ def training(model, confs):
     train_gen = DataGenerator(train_data, t_config)
     val_gen = DataGenerator(val_data, v_config)
 
+    return train_gen, val_gen
 
-    log_path = setup_logging()    
 
+def training(data, model, config):
+
+    confs = format_training_confs(config)    
+
+    train_gen, val_gen = setup_gens(data, confs)
+    
+    log_path = setup_logging()
 
     early_stop = EarlyStopping(
             monitor='val_loss',
@@ -92,13 +105,12 @@ def training(model, confs):
 
     tensorboard = TrainValTensorBoard(log_dir=log_path)
 
-    opt = Adam(lr=LR)
+    opt = Adam(lr=config['train']['lr'])
 
     model.compile(
         loss='sparse_categorical_crossentropy',
         optimizer=opt, 
         metrics=['acc'])
-
 
 
     model.fit_generator(
@@ -107,26 +119,13 @@ def training(model, confs):
         verbose=1,
         validation_data=val_gen,
         validation_steps=len(val_gen),
-        epochs=EPOCHS,
+        epochs=config['train']['epochs'],
         callbacks=[checkpoint, tensorboard, early_stop])
-
 
 
     K.clear_session()
 
 
-from keras.models import Model
-from keras.layers import Dense
-
-
-def update_model(model):
-
-    new_out = Dense(
-        NUM_CLASSES, 
-        activation='softmax', 
-        name='predictions')(model.layers[-2].output)
-
-    return Model(inputs=model.inputs, outputs=new_out)
 
 
     
@@ -139,5 +138,8 @@ if __name__ == '__main__':
     new_model = update_model(model)
 
     confs = t_config, v_config
+
+
+
 
     training(new_model, confs)

@@ -25,6 +25,6 @@ def setup_logging(logging_path='logs'):
 
     mkdir_p(run_path)
 
-    print('Logging ser up, to monitor training run:\n'
+    print('Logging set up, to monitor training run:\n'
         '\t\'tensorboard --logdir=%s\'\n'%run_path)
     return run_path

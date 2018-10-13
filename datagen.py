@@ -128,8 +128,6 @@ class DataGenerator(Sequence):
 
 
 
-
-
 class DataAugmenter(object):
 
     def __init__(self):
@@ -169,6 +167,7 @@ class DataAugmenter(object):
 
 
         return np.array(seq.augment_images(images))
+
 
 
 

@@ -1,0 +1,13 @@
+
+{
+    "size" : [224,224],
+    "path" : "data/farmer_market",
+    "train":{
+
+        "batch_size" : 16,
+        "num_per_class" : [120, 30],
+        "lr" : 0.0002,
+        "epochs" : 100
+    }
+
+}
