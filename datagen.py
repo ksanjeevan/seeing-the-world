@@ -17,17 +17,20 @@ def parse_input_data(path, split=0.75):
     ret = []
     class_map = {}
 
+    # Get all classes as directory names
     classes = [l for l in os.listdir(path) if not l.startswith('.')]
+
 
     for k, c in enumerate(classes):
         c_path = os.path.join(path, c)
-        image_names = [l for l in os.listdir(c_path) if not l.startswith('.')]
 
+        # Get imaeges in folder
+        image_names = [l for l in os.listdir(c_path) if not l.startswith('.')]
         np.random.shuffle(image_names)
 
+        # Tag certain % of them as train/validation
         M = len(image_names)
         N = int(round(split*M))
-
         training = [True]*N + [False]*(M-N)
 
         for j, im_name in enumerate(image_names):
@@ -38,7 +41,7 @@ def parse_input_data(path, split=0.75):
                 'class_index':k,
                 'train':training[j]
                 } )
-        
+        # Store decoder for label names
         class_map[k] = c
 
     return ret, class_map
@@ -49,28 +52,23 @@ class DataGenerator(Sequence):
 
     def __init__(self, train_ims, config, shuffle=True):
 
+        # Network parameters
         self.H, self.W = config['size']
-
         self.num_classes = config['num_classes']
         self.num_per_class = config['num_per_class']
         self.batch_size = config['batch_size']
         
         self.shuffle = shuffle
+        
+        # Create copies of original dataset to satisfy desired
+        # number of images per class. Due to the randomized 
+        # augmentation this should provide different examples.
         self.train_ims = self.preprocess_images(train_ims)
 
-        count = 0
-        '''
-        for im in self.train_ims:
-            if im['class_index'] == 1:
-                count += 1
-                print(count, im['filename'])
-                cv2.imwrite('prova/%d.png'%count, cv2.imread(im['filename']))
-        '''
-        
+        # Augmenter class to wrap imgaug
         self.augmenter = DataAugmenter()
-
+        
         self.on_epoch_end()
-
 
 
     def __len__(self):
@@ -79,7 +77,11 @@ class DataGenerator(Sequence):
         """
         return int(round(self.num_classes*self.num_per_class/self.batch_size))
 
+
     def __getitem__(self, i):
+        """
+        Generator output.
+        """
         start = self.batch_size*i
         end = self.batch_size*(i+1)
 
@@ -89,15 +91,16 @@ class DataGenerator(Sequence):
     def preprocess_images(self, ims):
         ret = []
         
+        # Get images for each class
         per_class = []
         for c in range(self.num_classes):
             per_class.append([im for im in ims if im['class_index'] == c])
 
+        # Make copies up to num_per_class
         for ims in per_class:
             count = 0
             index = 0
-            while count < self.num_per_class:
-                
+            while count < self.num_per_class:                
                 ret.append( ims[index] )
                 if index >= len(ims)-1:
                     index = 0
@@ -108,26 +111,36 @@ class DataGenerator(Sequence):
         return ret
 
 
-
     def get_data(self, names):
 
+        # Read in images and resize them for network
         images = [cv2.imread(n['filename']) for n in names]
         images = self.resize_images(images)
 
+        # Read in label array
         labels = np.array([n['class_index'] for n in names])
 
+        # Run augmentation on images
         return self.augmenter.run_aug(images), labels
 
     def resize_images(self, images):
+        """
+        H,W resizing.
+        """
         return [cv2.resize(im, (self.H, self.W)) for im in images]
 
     def on_epoch_end(self):
+        """
+        Shuffle images on epoch end.
+        """
         if self.shuffle: np.random.shuffle(self.train_ims)
 
 
 
 class DataAugmenter(object):
-
+    """
+    imgaug wrapper.
+    """
     def __init__(self):
         pass
 

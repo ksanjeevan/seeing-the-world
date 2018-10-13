@@ -1,15 +1,14 @@
 
+import numpy as np
+import cv2
 
 from keras.applications import VGG16
 from keras.models import Model, load_model
 from keras.layers import Dense
-import numpy as np
 
 from train import training
-
-import cv2
-
 from datagen import parse_input_data
+
 
 def update_model(model, out_size):
 
@@ -22,19 +21,24 @@ def update_model(model, out_size):
 
 
 class Net(object):
-
+    """
+    Handle training and inference of the network. 
+    Training makes use of Imagenet transfer learning and 
+    randomizes last layer (no freezing). 
+    """
     def __init__(self, config):
-        
+        # Set up clasification network
         self.model = VGG16()
         self.config = config
 
-        self.H, self.W = config['size']
+        # Parse data and label decoder
         self.data, self.index_to_class = parse_input_data(
             config['path'], 
             config['train']['split'])
 
+        # Store network parameters
+        self.H, self.W = config['size']
         self.num_classes = len(self.index_to_class)
-
         self.config['train']['num_classes'] = self.num_classes
 
         if 'trained_model' in config:
@@ -42,8 +46,10 @@ class Net(object):
 
 
     def train(self):
+        # Randomized last layer with approiate output size
         new_model = update_model(self.model, self.num_classes)
 
+        # Perform training with config parameters
         training(self.data, new_model, self.config)
 
 
@@ -54,11 +60,14 @@ class Net(object):
         image = cv2.resize(image, (self.H, self.W))
         iamge = np.expand_dims(image, axis=0)        
 
+        # Get network prediction
         out = self.t_model.predict(iamge)[0]
 
+        # Pick class with most confidence
         winner_ind = np.argmax(out)
         winner_conf = out[winner_ind]
 
+        # Decode label
         winner_label = self.index_to_class[winner_ind]
 
         print("Prediction: %s (%.2f%%)"%(winner_label, winner_conf*100.))

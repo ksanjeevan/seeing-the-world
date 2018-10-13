@@ -41,7 +41,6 @@ with open(conf, 'r') as r:
 if model and os.path.isfile(model):
     config['trained_model'] = model
 
-
 net = Net(config)
 
 if mode == 'train':

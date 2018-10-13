@@ -13,7 +13,9 @@ from keras.optimizers import Adam
 
 
 class TrainValTensorBoard(TensorBoard):
-
+    """
+    Tensorboard with Validation metrics
+    """
     def __init__(self, log_dir='./logs', **kwargs):
         training_log_dir = os.path.join(log_dir, 'training')
         super(TrainValTensorBoard, self).__init__(training_log_dir, **kwargs)
@@ -48,7 +50,9 @@ class TrainValTensorBoard(TensorBoard):
 
 
 def format_training_confs(config):
-
+    """
+    Set up configs for training/validation.
+    """
     t_config = {
                 'batch_size'    :   config['train']['batch_size'],
                 'num_per_class' :   config['train']['num_per_class'][0],
@@ -68,6 +72,9 @@ def format_training_confs(config):
 
 
 def setup_gens(data, confs):
+    """
+    Create training/validation generators.
+    """
     t_config, v_config = confs
 
     train_data = [d for d in data if d['train']==True]
@@ -80,11 +87,11 @@ def setup_gens(data, confs):
 
 
 def training(data, model, config):
-
+    # Setp up generators
     confs = format_training_confs(config)    
-
     train_gen, val_gen = setup_gens(data, confs)
     
+    # Set up logging/checkpointing dirs
     log_path = setup_logging()
 
     early_stop = EarlyStopping(
@@ -93,7 +100,6 @@ def training(data, model, config):
             patience=5,
             mode='min',
             verbose=1)
-
 
     checkpoint_path = os.path.join(log_path, 'trained_model.h5')
     checkpoint = ModelCheckpoint(
@@ -106,14 +112,13 @@ def training(data, model, config):
         )
 
     tensorboard = TrainValTensorBoard(log_dir=log_path)
-
     opt = Adam(lr=config['train']['lr'])
 
+    # Use cross entropy for sparse labels
     model.compile(
         loss='sparse_categorical_crossentropy',
         optimizer=opt, 
         metrics=['acc'])
-
 
     model.fit_generator(
         generator=train_gen,
@@ -127,21 +132,3 @@ def training(data, model, config):
 
     K.clear_session()
 
-
-
-
-    
-if __name__ == '__main__':
-
-    from keras.applications import VGG16
-
-    model = VGG16()
-
-    new_model = update_model(model)
-
-    confs = t_config, v_config
-
-
-
-
-    training(new_model, confs)
