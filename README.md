@@ -17,17 +17,8 @@ According to WHO, there are 253 million people live with vision impairment. 217 
 
 >We encourage our members and public to take pictures of different fruit and vegetable whenever they go to Farmer Market and commit back to the repo. We will build model using these pictures.
 
-- Hotel
 
-
-#### Object Detection
-- Outdoor Space Detection
-- Indoor Space Detection
-
-
-
-
-### Usage
+#### Usage
 
 **Config File**
 ```
@@ -62,6 +53,15 @@ Then running `tensorboard --logdir=/logs/run_{}` and entering on a browser `http
 ./stw.py plots/prova.jpg -m logs/run_0/trained_model.h5
 ```
 Will output e.g.: `Prediction: green_bean (69.97%)`.
+
+
+- Hotel
+
+
+#### Object Detection
+- Outdoor Space Detection
+- Indoor Space Detection
+
 
 
 ### Project Advisors:
