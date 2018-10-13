@@ -50,16 +50,18 @@ class TrainValTensorBoard(TensorBoard):
 def format_training_confs(config):
 
     t_config = {
-                'batch_size':config['train']['batch_size'],
-                'num_per_class':config['train']['num_per_class'][0],
-                'num_classes':config['train']['num_classes']
+                'batch_size'    :   config['train']['batch_size'],
+                'num_per_class' :   config['train']['num_per_class'][0],
+                'num_classes'   :   config['train']['num_classes'],
+                'size'          :   config['size']
     }
 
 
     v_config = {
-                'batch_size':config['train']['batch_size'],
-                'num_per_class':config['train']['num_per_class'][1],
-                'num_classes':config['train']['num_classes']
+                'batch_size'    :   config['train']['batch_size'],
+                'num_per_class' :   config['train']['num_per_class'][1],
+                'num_classes'   :   config['train']['num_classes'],
+                'size'          :   config['size']
     }
 
     return (t_config, v_config)

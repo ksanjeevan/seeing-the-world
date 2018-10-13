@@ -9,8 +9,6 @@ import numpy as np
 np.warnings.filterwarnings('ignore')
 ia.seed(1)
 
-H,W = (224,224)
-
 
 def parse_input_data(path, split=0.75):
     """
@@ -51,7 +49,7 @@ class DataGenerator(Sequence):
 
     def __init__(self, train_ims, config, shuffle=True):
 
-        self.H, self.W = H, W
+        self.H, self.W = config['size']
 
         self.num_classes = config['num_classes']
         self.num_per_class = config['num_per_class']
