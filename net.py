@@ -29,7 +29,9 @@ class Net(object):
         self.config = config
 
         self.H, self.W = config['size']
-        self.data, self.index_to_class = parse_input_data(config['path'])
+        self.data, self.index_to_class = parse_input_data(
+            config['path'], 
+            config['train']['split'])
 
         self.num_classes = len(self.index_to_class)
 
