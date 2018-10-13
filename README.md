@@ -38,7 +38,7 @@ According to WHO, there are 253 million people live with vision impairment. 217 
 
 **Train**
 ```
-./stw.py train
+./stw.py train -c config.json
 ```
 Then running `tensorboard --logdir=/logs/run_{}` and entering on a browser `http://localhost:6006/` will allow for training visualization.
 
@@ -50,7 +50,7 @@ Then running `tensorboard --logdir=/logs/run_{}` and entering on a browser `http
 **Inference**
 
 ```
-./stw.py plots/prova.jpg -m logs/run_0/trained_model.h5
+./stw.py plots/prova.jpg -w logs/run_0/trained_weights.h5
 ```
 Will output e.g.: `Prediction: green_bean (69.97%)`.
 

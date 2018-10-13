@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse, json, os
+from keras import backend as K
 
 from net import Net
 
@@ -13,9 +14,9 @@ argparser.add_argument(
     help='what to do'
 )
 argparser.add_argument(
-    '-m',
-    '--model',
-    help='path to keras model for inference',
+    '-w',
+    '--weights',
+    help='path to keras weights for inference/validation.',
     default=''
 )
 
@@ -30,7 +31,7 @@ argparser.add_argument(
 args = argparser.parse_args()
 
 mode = args.mode
-model = args.model
+weight_path = args.weights
 conf = args.conf
 
 
@@ -38,12 +39,20 @@ with open(conf, 'r') as r:
     config = json.load(r)
 
 
-if model and os.path.isfile(model):
-    config['trained_model'] = model
+if weight_path and os.path.isfile(weight_path):
+    config['trained_model_weights'] = weight_path
+
 
 net = Net(config)
 
 if mode == 'train':
-    net.train()    
+    # Train network
+    net.train()
+elif mode == 'test_gen':
+    # Test generator
+    net.test_generator()
 else:
+    # Run inference on image
     net.infer(mode)
+
+K.clear_session()

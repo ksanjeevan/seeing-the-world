@@ -6,7 +6,7 @@ from keras.applications import VGG16
 from keras.models import Model, load_model
 from keras.layers import Dense
 
-from train import training
+from train import training, test_generator
 from datagen import parse_input_data
 
 
@@ -41,16 +41,23 @@ class Net(object):
         self.num_classes = len(self.index_to_class)
         self.config['train']['num_classes'] = self.num_classes
 
-        if 'trained_model' in config:
-            self.t_model = load_model(config['trained_model'])
+        # Randomized last layer with approiate output size
+        self.trained_model = update_model(self.model, self.num_classes)
+
+        if 'trained_model_weights' in config:
+            
+            self.trained_model.load_weights(config['trained_model_weights'])
 
 
     def train(self):
-        # Randomized last layer with approiate output size
-        new_model = update_model(self.model, self.num_classes)
-
         # Perform training with config parameters
-        training(self.data, new_model, self.config)
+        training(self.data, self.trained_model, self.config)
+
+
+    def test_generator(self):
+        # Output small number of augmented training images
+        # for testing
+        test_generator(self.data, self.config)
 
 
     def infer(self, path_image):
@@ -61,7 +68,7 @@ class Net(object):
         iamge = np.expand_dims(image, axis=0)        
 
         # Get network prediction
-        out = self.t_model.predict(iamge)[0]
+        out = self.trained_model.predict(iamge)[0]
 
         # Pick class with most confidence
         winner_ind = np.argmax(out)

@@ -1,15 +1,12 @@
 
-import os
-from datagen import DataGenerator
-
-from utils import setup_logging
-
+import os, cv2
 import tensorflow as tf
 
-from keras import backend as K
 from keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard
 from keras.optimizers import Adam
 
+from datagen import DataGenerator
+from utils import setup_logging, mkdir_p
 
 
 class TrainValTensorBoard(TensorBoard):
@@ -101,14 +98,15 @@ def training(data, model, config):
             mode='min',
             verbose=1)
 
-    checkpoint_path = os.path.join(log_path, 'trained_model.h5')
+    checkpoint_path = os.path.join(log_path, 'trained_weights.h5')
     checkpoint = ModelCheckpoint(
         checkpoint_path,
         monitor='val_loss',
         verbose=1,
         save_best_only=True,
         mode='min',
-        period=1
+        period=1,
+        save_weights_only=True
         )
 
     tensorboard = TrainValTensorBoard(log_dir=log_path)
@@ -129,6 +127,21 @@ def training(data, model, config):
         epochs=config['train']['epochs'],
         callbacks=[checkpoint, tensorboard, early_stop])
 
+    
+def test_generator(data, config):
+    # Create dir to store test images
+    path = os.path.join(os.getcwd(), 'test_generator')
+    mkdir_p(path)
 
-    K.clear_session()
+    # Create generators
+    confs = format_training_confs(config)    
+    train_gen, val_gen = setup_gens(data, confs)
 
+    # Pull small amount of images to check on augmentation 
+    count = 0
+    for i in range(3):
+        images,_ = train_gen[i]
+        for im in images:
+            out = os.path.join(path, 'im_%s.png'%count)
+            cv2.imwrite(out, cv2.resize(im, (0,0), fx=2., fy=2.))
+            count += 1
