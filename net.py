@@ -65,7 +65,7 @@ class Net(object):
         # Pre-processing image
         image = cv2.imread(path_image)
         image = cv2.resize(image, (self.H, self.W))
-        iamge = np.expand_dims(image, axis=0)        
+        iamge = np.expand_dims(image, axis=0) / 255
 
         # Get network prediction
         out = self.trained_model.predict(iamge)[0]
