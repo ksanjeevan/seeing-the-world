@@ -6,6 +6,7 @@
 *.pyc
 *.pyo
 *.swp
+*.h5
 *~
 .cache
 .DS_Store
@@ -13,3 +14,4 @@
 **/._.DS_Store 
 logs/
 flowers/
+.ipynb_checkpoints/
